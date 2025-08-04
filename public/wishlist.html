@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist - E-Commerce</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+        .product-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .product-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-card h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .product-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .product-card p.price {
+            font-weight: bold;
+            color: #2c7;
+        }
+        a {
+            display: inline-block;
+            text-decoration: none;
+            color: #007bff;
+            margin-top: 20px;
+            text-align: center;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .empty-message {
+            text-align: center;
+            color: #888;
+            margin: 20px 0;
+        }
+        .toggle-desc {
+            color: #007bff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Wishlist</h1>
+        <div id="wishlist-container">
+            <p class="empty-message">Loading wishlist...</p>
+        </div>
+        <a id="back-to-products" href="#">Back to Products</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('username');
+            
+            const backToProductsLink = document.getElementById('back-to-products');
+            backToProductsLink.href = `products.html?username=${encodeURIComponent(username)}`;
+
+            if (!username) {
+                alert('Please log in to view your wishlist.');
+                return;
+            }
+
+            fetch(`/wishlist?username=${encodeURIComponent(username)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error fetching wishlist: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const wishlistContainer = document.getElementById('wishlist-container');
+                    wishlistContainer.innerHTML = ''; // Clear loading message
+
+                    if (data.length === 0) {
+                        wishlistContainer.innerHTML = '<p class="empty-message">Your wishlist is empty.</p>';
+                    } else {
+                        data.forEach(product => {
+                            wishlistContainer.innerHTML += `
+                                <div class="product-card">
+                                    <img src="${product.image || 'https://via.placeholder.com/100'}" alt="${product.product_name}">
+                                    <div>
+                                        <h3>${product.product_name}</h3>
+                                        
+                                        <p class="description">
+                                            <span class="short-desc">
+                                                ${product.description.slice(0, 200)}...
+                                                <a href="#" class="toggle-desc" onclick="toggleDesc(this); return false;">View More</a>
+                                            </span>
+                                            <span class="full-desc" style="display: none;">
+                                                ${product.description}
+                                                <a href="#" class="toggle-desc" onclick="toggleDesc(this); return false;">View Less</a>
+                                            </span>
+                                        </p>
+
+                                        <p class="price">₹${product.discounted_price}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching wishlist:', error);
+                    const wishlistContainer = document.getElementById('wishlist-container');
+                    wishlistContainer.innerHTML = '<p class="empty-message">Failed to load wishlist. Please try again later.</p>';
+                });
+        });
+    </script>
+    <script>
+        function toggleDesc(link) {
+            const container = link.closest('.description');
+            const shortDesc = container.querySelector('.short-desc');
+            const fullDesc = container.querySelector('.full-desc');
+
+            if (shortDesc.style.display === 'none') {
+            shortDesc.style.display = '';
+            fullDesc.style.display = 'none';
+            } else {
+            shortDesc.style.display = 'none';
+            fullDesc.style.display = '';
+            }
+        }
+    </script>
+
+</body>
+</html>
